@@ -44,7 +44,9 @@ data <- data %>% rename(Name = short_name, Club = club_name ,League = league_nam
 ## UI ##########################################################################
 
 ui <- navbarPage("Scouting App",
-                 
+
+## TAB 1 #######################################################################
+
     tabPanel("General", fluid = TRUE,
                        
                        sidebarLayout(
@@ -135,14 +137,17 @@ ui <- navbarPage("Scouting App",
              
              ), # Close tab panel
     
-    
+## TAB 2 #######################################################################
+
     tabPanel("Compare", fluid = TRUE,
              ),# Close tab panel
-    
+ 
+## TAB 3 ####################################################################### 
+
     tabPanel("Similar player", fluid = TRUE,
              ),# Close tab panel
     
-)
+) # Close navbar
 
 ## SERVER #######################################################################
 
