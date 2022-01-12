@@ -1,7 +1,6 @@
 library(tidyverse)
 library(shiny)
 library(shinyWidgets)
-#library(DT)
 
 ## DATA #######################################################################
 # Fix gk missing
