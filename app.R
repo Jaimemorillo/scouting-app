@@ -43,16 +43,13 @@ data <- data %>% rename(Name = short_name, Club = club_name ,League = league_nam
 
 ## UI ##########################################################################
 
-ui <- fluidPage(
-  titlePanel("Scouting App"),
-  
-  tabsetPanel(
+ui <- navbarPage("Scouting App",
+                 
     tabPanel("General", fluid = TRUE,
                        
                        sidebarLayout(
-                         
-                         sidebarPanel(h4("Filters"),
-                                      
+              
+                         sidebarPanel(
                                       pickerInput("nations",
                                                   label = "Nations:", 
                                                   choices = nations, 
@@ -82,26 +79,24 @@ ui <- fluidPage(
                                                                         "RW" = "RW",
                                                                         "CF" = "CF",
                                                                         "ST" = "ST"
-                                                         ),
-                                                         inline = TRUE,
-                                                         selected = NULL),
+                                                         ), inline = TRUE, selected = NULL),
                                       
                                       checkboxGroupInput("foot", 
                                                          label = "Foot:", 
                                                          choices = list("Left" = "Left",
                                                                         "Right" = "Right"
-                                                         ),
-                                                         inline = TRUE,
-                                                         selected = NULL),
+                                                         ), inline = TRUE, selected = NULL),
                                       
                                       fluidRow(
                                         
                                         column(6, sliderInput("pace_range", 
                                                               label = "Pace:",
-                                                              min = 1, max = 99, value = c(min_pace, max_pace))),
+                                                              min = 1, max = 99, 
+                                                              value = c(min_pace, max_pace))),
                                         column(6, sliderInput("shooting_range", 
                                                               label = "Shooting:",
-                                                              min = 1, max = 99, value = c(min_shooting, max_shooting)))
+                                                              min = 1, max = 99, 
+                                                              value = c(min_shooting, max_shooting)))
                                         
                                       ),
                                       
@@ -109,10 +104,12 @@ ui <- fluidPage(
                                         
                                         column(6, sliderInput("passing_range", 
                                                               label = "Passing:",
-                                                              min = 1, max = 99, value = c(min_passing, max_passing))),
+                                                              min = 1, max = 99, 
+                                                              value = c(min_passing, max_passing))),
                                         column(6, sliderInput("dribbling_range", 
                                                               label = "Dribbling:",
-                                                              min = 1, max = 99, value = c(min_dribbling, max_dribbling)))
+                                                              min = 1, max = 99, 
+                                                              value = c(min_dribbling, max_dribbling)))
                                         
                                       ),
                                       
@@ -120,26 +117,31 @@ ui <- fluidPage(
                                         
                                         column(6,  sliderInput("defending_range", 
                                                                label = "Defending:",
-                                                               min = 1, max = 99, value = c(min_defending, max_defending))),
+                                                               min = 1, max = 99, 
+                                                               value = c(min_defending, max_defending))),
                                         column(6, sliderInput("physic_range", 
                                                               label = "Physic:",
-                                                              min = 1, max = 99, value = c(min_physic, max_physic)))
+                                                              min = 1, max = 99, 
+                                                              value = c(min_physic, max_physic)))
                                         
                                       ),
                                       
                          ), # Close sidebar
-                         mainPanel(dataTableOutput('table'))
                          
-                         ) # Close the sidebarlayout
-             ), # Close tabpanel
+                         mainPanel(dataTableOutput('table')
+                                   ) # Close main panel
+                         
+                         ) # Close the sidebar layout
+             
+             ), # Close tab panel
+    
     
     tabPanel("Compare", fluid = TRUE,
-             ),
+             ),# Close tab panel
     
     tabPanel("Similar player", fluid = TRUE,
-    ),
+             ),# Close tab panel
     
-  ) # Close tabset panel
 )
 
 ## SERVER #######################################################################
