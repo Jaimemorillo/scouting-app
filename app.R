@@ -1,6 +1,7 @@
 library(tidyverse)
 library(shiny)
 library(shinyWidgets)
+library(plotly)
 
 ## DATA #######################################################################
 # Fix gk missing
@@ -44,109 +45,139 @@ data <- data %>% rename(Name = short_name, Club = club_name ,League = league_nam
 ## UI ##########################################################################
 
 ui <- navbarPage("Scouting App",
-
+                 
 ## TAB 1 #######################################################################
-
-    tabPanel("General", fluid = TRUE,
-                       
-                       sidebarLayout(
-              
-                         sidebarPanel(
-                                      pickerInput("nations",
-                                                  label = "Nations:", 
-                                                  choices = nations, 
-                                                  options = list(`actions-box` = TRUE),
-                                                  multiple = T),
-                                      
-                                      pickerInput("leagues",
-                                                  label = "Leagues:", 
-                                                  choices = leagues, 
-                                                  options = list(`actions-box` = TRUE),
-                                                  multiple = T),
-                                      
-                                      checkboxGroupInput("positions", 
-                                                         label = "Positions:", 
-                                                         choices = list("GK" = "GK",
-                                                                        "RB" = "RB",
-                                                                        "RWB" = "RWB",
-                                                                        "LB" = "LB",
-                                                                        "LWB" = "LWB",
-                                                                        "CB" = "CB", 
-                                                                        "CDM" = "CDM",
-                                                                        "CM" = "CM",
-                                                                        "CAM" = "CAM",
-                                                                        "LM" = "LM",
-                                                                        "LW" = "LW",
-                                                                        "RM" = "RM",
-                                                                        "RW" = "RW",
-                                                                        "CF" = "CF",
-                                                                        "ST" = "ST"
-                                                         ), inline = TRUE, selected = NULL),
-                                      
-                                      checkboxGroupInput("foot", 
-                                                         label = "Foot:", 
-                                                         choices = list("Left" = "Left",
-                                                                        "Right" = "Right"
-                                                         ), inline = TRUE, selected = NULL),
-                                      
-                                      fluidRow(
-                                        
-                                        column(6, sliderInput("pace_range", 
-                                                              label = "Pace:",
-                                                              min = 1, max = 99, 
-                                                              value = c(min_pace, max_pace))),
-                                        column(6, sliderInput("shooting_range", 
-                                                              label = "Shooting:",
-                                                              min = 1, max = 99, 
-                                                              value = c(min_shooting, max_shooting)))
-                                        
-                                      ),
-                                      
-                                      fluidRow(
-                                        
-                                        column(6, sliderInput("passing_range", 
-                                                              label = "Passing:",
-                                                              min = 1, max = 99, 
-                                                              value = c(min_passing, max_passing))),
-                                        column(6, sliderInput("dribbling_range", 
-                                                              label = "Dribbling:",
-                                                              min = 1, max = 99, 
-                                                              value = c(min_dribbling, max_dribbling)))
-                                        
-                                      ),
-                                      
-                                      fluidRow(
-                                        
-                                        column(6,  sliderInput("defending_range", 
-                                                               label = "Defending:",
-                                                               min = 1, max = 99, 
-                                                               value = c(min_defending, max_defending))),
-                                        column(6, sliderInput("physic_range", 
-                                                              label = "Physic:",
-                                                              min = 1, max = 99, 
-                                                              value = c(min_physic, max_physic)))
-                                        
-                                      ),
-                                      
-                         ), # Close sidebar
-                         
-                         mainPanel(dataTableOutput('table')
-                                   ) # Close main panel
-                         
-                         ) # Close the sidebar layout
-             
-             ), # Close tab panel
-    
+                 
+                 tabPanel("General", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              pickerInput("nations",
+                                          label = "Nations:", 
+                                          choices = nations, 
+                                          selected = unlist(nations, use.names = FALSE),
+                                          options = list(`actions-box` = TRUE),
+                                          multiple = T),
+                              
+                              pickerInput("leagues",
+                                          label = "Leagues:", 
+                                          choices = leagues, 
+                                          selected = unlist(leagues, use.names = FALSE),
+                                          options = list(`actions-box` = TRUE),
+                                          multiple = T),
+                              
+                              checkboxGroupInput("positions", 
+                                                 label = "Positions:", 
+                                                 choices = list("GK" = "GK",
+                                                                "RB" = "RB",
+                                                                "RWB" = "RWB",
+                                                                "LB" = "LB",
+                                                                "LWB" = "LWB",
+                                                                "CB" = "CB", 
+                                                                "CDM" = "CDM",
+                                                                "CM" = "CM",
+                                                                "CAM" = "CAM",
+                                                                "LM" = "LM",
+                                                                "LW" = "LW",
+                                                                "RM" = "RM",
+                                                                "RW" = "RW",
+                                                                "CF" = "CF",
+                                                                "ST" = "ST"
+                                                 ), inline = TRUE, selected = "ST"),
+                              
+                              checkboxGroupInput("foot", 
+                                                 label = "Foot:", 
+                                                 choices = list("Left" = "Left",
+                                                                "Right" = "Right"
+                                                 ), inline = TRUE, selected = c("Left", "Right")),
+                              
+                              fluidRow(
+                                
+                                column(6, sliderInput("pace_range", 
+                                                      label = "Pace:",
+                                                      min = 1, max = 99, 
+                                                      value = c(min_pace, max_pace))),
+                                column(6, sliderInput("shooting_range", 
+                                                      label = "Shooting:",
+                                                      min = 1, max = 99, 
+                                                      value = c(min_shooting, max_shooting)))
+                                
+                              ),
+                              
+                              fluidRow(
+                                
+                                column(6, sliderInput("passing_range", 
+                                                      label = "Passing:",
+                                                      min = 1, max = 99, 
+                                                      value = c(min_passing, max_passing))),
+                                column(6, sliderInput("dribbling_range", 
+                                                      label = "Dribbling:",
+                                                      min = 1, max = 99, 
+                                                      value = c(min_dribbling, max_dribbling)))
+                                
+                              ),
+                              
+                              fluidRow(
+                                
+                                column(6,  sliderInput("defending_range", 
+                                                       label = "Defending:",
+                                                       min = 1, max = 99, 
+                                                       value = c(min_defending, max_defending))),
+                                column(6, sliderInput("physic_range", 
+                                                      label = "Physic:",
+                                                      min = 1, max = 99, 
+                                                      value = c(min_physic, max_physic)))
+                                
+                              ),
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(dataTableOutput('table')
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ), # Close tab panel
+                 
 ## TAB 2 #######################################################################
-
-    tabPanel("Compare", fluid = TRUE,
-             ),# Close tab panel
- 
+                 
+                 tabPanel("Compare", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel
+                 
 ## TAB 3 ####################################################################### 
-
-    tabPanel("Similar player", fluid = TRUE,
-             ),# Close tab panel
-    
+                 
+                 tabPanel("Similar player", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel
+                 
 ) # Close navbar
 
 ## SERVER #######################################################################
@@ -158,7 +189,7 @@ server <- function(input, output) {
   # })
   
   output$table <- renderDataTable(
-    data %>% filter(Nation %in% input$nations &  
+    data %>% filter(Nation %in% input$nations &
                       League %in% input$leagues & 
                       Position %in% input$positions & 
                       Foot %in% input$foot & 
@@ -168,12 +199,12 @@ server <- function(input, output) {
                       between(Dribbling, input$dribbling_range[1], input$dribbling_range[2]) &
                       between(Defending, input$defending_range[1], input$defending_range[2]) &
                       between(Physic, input$physic_range[1], input$physic_range[2])
-                      )
+    )
     %>% select(-Foot),
     options = list(pageLength = 10,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
-    
+  
 }
 
 ## APP ##########################################################################
