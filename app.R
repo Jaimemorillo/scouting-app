@@ -3,8 +3,6 @@ library(shiny)
 library(shinyWidgets)
 library(plotly)
 library(factoextra)
-library(grid)
-library(gridExtra)
 
 ## DATA #######################################################################
 # GK missing
@@ -46,6 +44,16 @@ data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 # Create inputs for filters (radar chart) ordering by name
 players <- as.list(unique(data_stats["Name_Club"]))
 players <- lapply(players,sort,decreasing=FALSE)
+
+# Function for getting the mode
+Mode <- function(x) {
+  ux <- unique(x)
+  if(!anyDuplicated(x)){
+    NA_character_ } else { 
+      tbl <-   tabulate(match(x, ux))
+      toString(ux[tbl==max(tbl)])
+    }
+}
 
 ## UI ##########################################################################
 
@@ -109,10 +117,11 @@ ui <- navbarPage("Scouting App",
                             
                             mainPanel(
                               plotOutput('cluster_plot'),
-                              br(),
-                              br(),
-                              br(),
-                              tableOutput('cluster_summary')
+                              tabsetPanel(type = "tabs",
+                                          tabPanel("Summary", tableOutput('cluster_summary'),),
+                                          tabPanel("Players", dataTableOutput('cluster_players'))
+                              )
+                              
                             ) # Close main panel
                             
                           ) # Close the sidebar layout
@@ -261,7 +270,6 @@ tabPanel("Stats Correlation", fluid = TRUE,
                               ),
                               
                             ), # Close sidebar
-                            
                             mainPanel(dataTableOutput('table')
                             ) # Close main panel
                             
@@ -342,21 +350,21 @@ server <- function(input, output) {
   
   
   ## Clustering  #######################  
-  # Filter the data
+  # Filter the data by Global Position
   dataCluster <- reactive({
     data_cluster <- data %>% filter(Global.Position == input$position_cluster) 
     row.names(data_cluster) <- data_cluster$id
     data_cluster
   })
   
-  # Create the clusters
+  # Create the clusters with Kmeans
   clusters <- reactive({
     data_cluster <- dataCluster() %>% select(stats_names)
     set.seed(1)
     kmeans(data_cluster, centers = as.numeric(input$n_clusters), nstart = 20)   
   })
   
-  # Create the plot
+  # Create the plot in 2D
   output$cluster_plot <- renderPlot({
     data_cluster <- dataCluster() %>% select(stats_names)
     k <- clusters()
@@ -364,28 +372,38 @@ server <- function(input, output) {
                       ggtheme = theme_minimal())+ggtitle(paste0("Kmeans (",input$n_clusters, " clusters)"))
     options(repr.plot.width = 15, repr.plot.height = 8)
     p
-  }, width = 650, height = 450)
+  }, width = 600, height = 400)
   
-  # Data table with clusters summary
+  # Data table output with clusters summary
   output$cluster_summary <- renderTable({
     data <- dataCluster()
     k <- clusters()
     data$Cluster <- k$cluster
-    summary <- data %>% group_by(Cluster) %>% summarise("Value (€M)" = mean(Value),
-                                                          "Salary (€k)" = mean(Salary),
-                                                          Age = mean(Age),
-                                                          Pace = mean(Pace),
-                                                          Shooting = mean(Shooting),
-                                                          Passing = mean(Passing),
-                                                          Dribbling = mean(Dribbling),
-                                                          Defending = mean(Defending),
-                                                          Physic = mean(Physic))
-    summary <- round(summary,0)
-    summary <- as.data.frame(sapply(summary,as.integer))
-    summary$`Value (€M)` <- round(summary$Value/1000000,2)
-    summary$`Salary (€k)` <- round(summary$Salary/1000,2)
+    summary <- data %>% group_by(Cluster) %>% summarise("Number of Players" = n(),
+                                                        "Value (€M)" = round(mean(Value)/1000000,2),
+                                                        "Salary (€k)" = round(mean(Salary)/1000,2),
+                                                        Age = as.integer(mean(Age)),
+                                                        Pace = as.integer(mean(Pace)),
+                                                        Shooting = as.integer(mean(Shooting)),
+                                                        Passing = as.integer(mean(Passing)),
+                                                        Dribbling = as.integer(mean(Dribbling)),
+                                                        Defending = as.integer(mean(Defending)),
+                                                        Physic = as.integer(mean(Physic)),
+                                                        "Main Position" = Mode(Position)
+    )
     summary
-  })
+    })
+  
+  # Data table output with the players in each cluster
+  output$cluster_players <- renderDataTable({
+    data <- dataCluster()
+    k <- clusters()
+    data$Cluster <- k$cluster
+    data <- data %>% select(Cluster, Name, Club, League, Nation, Position) %>% arrange(Cluster)
+  },
+  options = list(pageLength = 5, scrollX = T, lengthMenu = c(5, 10, 20))
+  )
+  
 }
 
 ## APP ##########################################################################

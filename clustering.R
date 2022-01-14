@@ -3,8 +3,6 @@ library(shiny)
 library(shinyWidgets)
 library(plotly)
 library(factoextra)
-library(grid)
-library(gridExtra)
 
 data <- read.csv("data/fifa_players.csv", sep="|", encoding = 'UTF-8')
 
@@ -34,7 +32,7 @@ data <- data %>% rename(Name = short_name, Club = club_name, League = league_nam
 stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic')
 
 # Clustering
-data_cluster <- data %>% filter(Global.Position == "Forward") 
+data_cluster <- data %>% filter(Global.Position == "Defender") 
 row.names(data_cluster) <- data_cluster$id 
 data_cluster_in <- data_cluster %>% select(stats_names)
 
@@ -46,6 +44,15 @@ p
 
 data_cluster$Cluster <- k$cluster
 
+
+Mode <- function(x) {
+  ux <- unique(x)
+  if(!anyDuplicated(x)){
+    NA_character_ } else { 
+      tbl <-   tabulate(match(x, ux))
+      toString(ux[tbl==max(tbl)])
+    }
+}
 z <- data_cluster %>% group_by(Cluster) %>% summarise("Value (M)" = mean(Value),
                                                       Salary = mean(Salary),
                                                       Age = mean(Age),
@@ -54,7 +61,8 @@ z <- data_cluster %>% group_by(Cluster) %>% summarise("Value (M)" = mean(Value),
                                                       Passing = mean(Passing),
                                                       Dribbling = mean(Dribbling),
                                                       Defending = mean(Defending),
-                                                      Physic = mean(Physic))
+                                                      Physic = mean(Physic),
+                                                      Position = Mode(Position))
 z <- round(z,2)
 z$`Value (M)`
 
