@@ -328,8 +328,8 @@ tabPanel("Stats Correlation", fluid = TRUE,
 server <- function(input, output) {
   
   ## Create Database Table #######################   
-  output$table <- renderDataTable(
-    data %>% filter(Nation %in% input$nations &
+  output$table <- renderDataTable({
+    data <- data %>% filter(Nation %in% input$nations &
                       League %in% input$leagues & 
                       Position %in% input$positions & 
                       Foot %in% input$foot & 
@@ -339,8 +339,12 @@ server <- function(input, output) {
                       between(Dribbling, input$dribbling_range[1], input$dribbling_range[2]) &
                       between(Defending, input$defending_range[1], input$defending_range[2]) &
                       between(Physic, input$physic_range[1], input$physic_range[2])
-    )
-    %>% select(-c(Global.Position, id, player_face_url)),
+    ) %>% select(-c(Global.Position, id, player_face_url))
+    
+    data$Value <- round(data$Value/1000000,2)
+    data$Salary <- round(data$Salary/1000,2)
+    data %>% rename("Value (€M)" = Value, "Salary(€k)" = Salary)
+    },
     options = list(pageLength = 10, scrollX = T,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
