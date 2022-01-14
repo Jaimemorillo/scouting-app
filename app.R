@@ -7,9 +7,14 @@ library(plotly)
 # GK missing
 data <- read.csv("data/fifa_players.csv", sep="|", encoding = 'UTF-8')
 
+# Create global position variable (Defender, Midfielder or Forward)
+data$Global_Position <- ifelse(data$player_position %in% c("RB","RWB","LB","LWB","CB") ,"Defender",
+                               ifelse(data$player_position %in% c("CDM","CM","CAM","LM","RM"), "Midfielder",
+                                      "Forward"))
+
 # https://dplyr.tidyverse.org/reference/ (library for select, filter, rename...)
 data <- data %>% select(short_name, club_name,
-                        league_name, nationality_name, player_position,
+                        league_name, nationality_name, player_position, Global_Position,
                         age, value_eur, wage_eur, preferred_foot,
                         pace, shooting, passing, dribbling, defending, physic,
                         search_name)
