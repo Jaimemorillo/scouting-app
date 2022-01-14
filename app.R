@@ -1,8 +1,9 @@
 library(tidyverse)
-library(shiny)
-library(shinyWidgets)
 library(plotly)
 library(factoextra)
+library(shiny)
+library(shinydashboard)
+library(shinyWidgets)
 
 ## DATA #######################################################################
 # GK missing
@@ -17,7 +18,7 @@ data$global_position <- ifelse(data$player_position %in% c("RB","RWB","LB","LWB"
 data <- data %>% select(id, short_name, club_name,
                         league_name, nationality_name, player_position, global_position,
                         age, value_eur, wage_eur, preferred_foot,
-                        pace, shooting, passing, dribbling, defending, physic,
+                        pace, shooting, passing, dribbling, defending, physic, player_face_url,
                         search_name)
 # search_name has to be the last one
 
@@ -39,7 +40,8 @@ leagues <- lapply(leagues,sort,decreasing=FALSE)
 
 # Create radar chart data 
 stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic')
-data_stats <- data %>% select ("Name", "Club", stats_names)
+data_stats <- data %>% select ("Name", "Club", "player_face_url", "Age", "Nation",
+                               "Value", "Position", stats_names)
 data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 # Create inputs for filters (radar chart) ordering by name
 players <- as.list(unique(data_stats["Name_Club"]))
@@ -77,17 +79,49 @@ ui <- navbarPage("Scouting App",
                                           choices = players,
                                           selected = "N. Kanté - Chelsea"),
                               
-                              selectInput("player_3",
-                                          label = "Player 3:", 
-                                          choices = players,
-                                          selected = "Cristiano Ronaldo - Manchester United"),
-                              
-                              helpText("To visualize the stats of a player
+                              helpText("To visualize / hide the stats of a player
                                        click his name in the legend.")
                               
                             ), # Close sidebar
                             
-                            mainPanel(plotlyOutput("radar")
+                            mainPanel(
+                              fluidRow(
+                              
+                              ## Player 1 target ##
+                              column(6, box(title = textOutput("name_player_1"),
+                                  width = 12,
+                                  status = "primary", solidHeader = TRUE,
+                                  collapsible = F,
+                                  fluidRow(column(width = 2, uiOutput("img_player_1")),
+                                           column(width = 5, offset = 2, 
+                                                  fluidRow(textOutput("age_player_1")), 
+                                                  fluidRow(textOutput("value_player_1")), 
+                                                  fluidRow(textOutput("position_player_1")),
+                                                  fluidRow(textOutput("nation_player_1")))
+                                           )
+                                  ),style = "background-color:#f0f0f0 ; padding-bottom: 1.3em; border-right: 2px solid grey;"),
+                              
+                              ## Player 2 target ##
+                              column(6, box(title = textOutput("name_player_2"),
+                                           status = "primary",
+                                           solidHeader = T,
+                                           collapsible = F,
+                                           width = 12,
+                                           fluidRow(column(width = 2,  uiOutput("img_player_2")),
+                                                    column(width = 8, offset=2, 
+                                                           fluidRow(textOutput("age_player_2")), 
+                                                           fluidRow(textOutput("value_player_2")), 
+                                                           fluidRow(textOutput("position_player_2")),
+                                                           fluidRow(textOutput("nation_player_2")))
+                                                    )
+                                           )
+                                     ),style = "background-color:#f0f0f0; border: 2px solid grey; margin-right: 5px; border-radius: 7px; "),
+                              
+                              ## Display radar chart
+                              fluidRow(
+                                column(11, align="center",
+                                       plotlyOutput("radar")
+                                ))
                             ) # Close main panel
                             
                           ) # Close the sidebar layout
@@ -285,7 +319,7 @@ tabPanel("Stats Correlation", fluid = TRUE,
 
 server <- function(input, output) {
   
-  ## Create database table #######################   
+  ## Create Database Table #######################   
   output$table <- renderDataTable(
     data %>% filter(Nation %in% input$nations &
                       League %in% input$leagues & 
@@ -298,18 +332,20 @@ server <- function(input, output) {
                       between(Defending, input$defending_range[1], input$defending_range[2]) &
                       between(Physic, input$physic_range[1], input$physic_range[2])
     )
-    %>% select(-c(Global.Position, id)),
+    %>% select(-c(Global.Position, id, player_face_url)),
     options = list(pageLength = 10, scrollX = T,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
 
-  ## Create radar chart plot #######################     
+  ## Create radar TAB info ####################### 
+  
+  # Create radar plot
   output$radar <- renderPlotly({
-    
     plot_ly(
       type = 'scatterpolar',
       mode = "closest",
-      fill = 'toself'
+      fill = 'toself',
+      width = 700, height=475
     )  %>%
       add_trace(
         r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_1)
@@ -323,21 +359,10 @@ server <- function(input, output) {
                                      %>% select(stats_names))[1,]),
         theta = stats_names,
         name = as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Name_Club"],
-        showlegend = TRUE,
-        mode = "markers",
-        visible="legendonly"
+        mode = "markers"
       )  %>%
-      add_trace(
-        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_3)
-                                     %>% select(stats_names))[1,]),
-        theta = stats_names,
-        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_3))[1,"Name_Club"],
-        showlegend = TRUE,
-        mode = "markers",
-        visible="legendonly"
-      ) %>% 
       layout(
-        autosize = T, width = 800, height=700, margin = 30,
+        legend = list(x = 0.3, y = -0.15),
         polar = list(
           radialaxis = list(
             visible = T,
@@ -345,9 +370,69 @@ server <- function(input, output) {
           )
         )
       )
-    
   })
   
+  ## Player 1 general info###
+  output$img_player_1 <- renderUI({
+    url <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"player_face_url"]
+    tags$img(src = url, height = 100, width = 100)
+  })
+  
+  output$name_player_1 <- renderText(
+    name <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Name"]
+  )
+  
+  output$age_player_1 <- renderText({
+    age <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Age"]
+    paste("AGE:", as.character(age))
+  })
+  
+  output$value_player_1 <- renderText({
+    value <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Value"]
+    value <- round(value/1000000,2)
+    paste("VALUE:","€",as.character(value), "M")
+  })
+  
+  output$position_player_1 <- renderText({
+    position <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Position"]
+    paste("POSITION:",as.character(position))
+  })
+  
+  output$nation_player_1 <- renderText({
+    nation <- as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Nation"]
+    paste("NATION:",as.character(nation))
+  })
+  
+  ## Player 2 general info ###
+  output$img_player_2 <- renderUI({
+    url <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"player_face_url"]
+    tags$img(src = url, height = 100, width = 100)
+  })
+  
+  output$name_player_2 <- renderText(
+    name <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Name"]
+  )
+  
+  output$age_player_2 <- renderText({
+    age <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Age"]
+    paste("AGE:", as.character(age))
+  })
+  
+  output$value_player_2 <- renderText({
+    value <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Value"]
+    value <- round(value/1000000,2)
+    paste("VALUE:","€",as.character(value), "M")
+  })
+  
+  output$position_player_2 <- renderText({
+    position <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Position"]
+    paste("POSITION:",as.character(position))
+  })
+  
+  output$nation_player_2 <- renderText({
+    nation <- as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Nation"]
+    paste("NATION:",as.character(nation))
+  })
   
   ## Clustering  #######################  
   # Filter the data by Global Position
