@@ -8,13 +8,13 @@ library(plotly)
 data <- read.csv("data/fifa_players.csv", sep="|", encoding = 'UTF-8')
 
 # Create global position variable (Defender, Midfielder or Forward)
-data$Global_Position <- ifelse(data$player_position %in% c("RB","RWB","LB","LWB","CB") ,"Defender",
+data$global_position <- ifelse(data$player_position %in% c("RB","RWB","LB","LWB","CB") ,"Defender",
                                ifelse(data$player_position %in% c("CDM","CM","CAM","LM","RM"), "Midfielder",
                                       "Forward"))
 
 # https://dplyr.tidyverse.org/reference/ (library for select, filter, rename...)
 data <- data %>% select(short_name, club_name,
-                        league_name, nationality_name, player_position, Global_Position,
+                        league_name, nationality_name, player_position, global_position,
                         age, value_eur, wage_eur, preferred_foot,
                         pace, shooting, passing, dribbling, defending, physic,
                         search_name)
@@ -22,7 +22,8 @@ data <- data %>% select(short_name, club_name,
 
 # Rename columns
 data <- data %>% rename(Name = short_name, Club = club_name, League = league_name, 
-                        Nation = nationality_name, Position = player_position,
+                        Nation = nationality_name, Position = player_position, 
+                        "Global Position" = global_position,
                         Age = age, Value = value_eur, Salary = wage_eur, Foot = preferred_foot,
                         Pace = pace, Shooting = shooting, 
                         Passing = passing, Dribbling = dribbling, Defending = defending, 
