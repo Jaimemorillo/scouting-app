@@ -61,7 +61,7 @@ Mode <- function(x) {
 
 ui <- navbarPage("Scouting App",
                  
-  ## TAB Compare players #######################################################################
+                 ## TAB Compare players #######################################################################
                  tabPanel("Compare Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -86,36 +86,36 @@ ui <- navbarPage("Scouting App",
                             
                             mainPanel(
                               fluidRow(
-                              
-                              ## Player 1 target ##
-                              column(6, box(title = textOutput("name_player_1"),
-                                  width = 12,
-                                  status = "primary", solidHeader = TRUE,
-                                  collapsible = F,
-                                  fluidRow(column(width = 2, uiOutput("img_player_1")),
-                                           column(width = 5, offset = 2, 
-                                                  fluidRow(textOutput("age_player_1")), 
-                                                  fluidRow(textOutput("value_player_1")), 
-                                                  fluidRow(textOutput("position_player_1")),
-                                                  fluidRow(textOutput("nation_player_1")))
-                                           )
-                                  ),style = "background-color:#f0f0f0 ; padding-bottom: 1.3em; border-right: 2px solid grey;"),
-                              
-                              ## Player 2 target ##
-                              column(6, box(title = textOutput("name_player_2"),
-                                           status = "primary",
-                                           solidHeader = T,
-                                           collapsible = F,
-                                           width = 12,
-                                           fluidRow(column(width = 2,  uiOutput("img_player_2")),
-                                                    column(width = 8, offset=2, 
-                                                           fluidRow(textOutput("age_player_2")), 
-                                                           fluidRow(textOutput("value_player_2")), 
-                                                           fluidRow(textOutput("position_player_2")),
-                                                           fluidRow(textOutput("nation_player_2")))
-                                                    )
-                                           )
-                                     ),style = "background-color:#f0f0f0; border: 2px solid grey; margin-right: 5px; border-radius: 7px; "),
+                                
+                                ## Player 1 target ##
+                                column(6, box(title = textOutput("name_player_1"),
+                                              width = 12,
+                                              status = "primary", solidHeader = TRUE,
+                                              collapsible = F,
+                                              fluidRow(column(width = 2, uiOutput("img_player_1")),
+                                                       column(width = 5, offset = 2, 
+                                                              fluidRow(textOutput("age_player_1")), 
+                                                              fluidRow(textOutput("value_player_1")), 
+                                                              fluidRow(textOutput("position_player_1")),
+                                                              fluidRow(textOutput("nation_player_1")))
+                                              )
+                                ),style = "background-color:#f0f0f0 ; padding-bottom: 1.3em; border-right: 2px solid grey;"),
+                                
+                                ## Player 2 target ##
+                                column(6, box(title = textOutput("name_player_2"),
+                                              status = "primary",
+                                              solidHeader = T,
+                                              collapsible = F,
+                                              width = 12,
+                                              fluidRow(column(width = 2,  uiOutput("img_player_2")),
+                                                       column(width = 8, offset=2, 
+                                                              fluidRow(textOutput("age_player_2")), 
+                                                              fluidRow(textOutput("value_player_2")), 
+                                                              fluidRow(textOutput("position_player_2")),
+                                                              fluidRow(textOutput("nation_player_2")))
+                                              )
+                                )
+                                ),style = "background-color:#f0f0f0; border: 2px solid grey; margin-right: 5px; border-radius: 7px; "),
                               
                               ## Display radar chart
                               fluidRow(
@@ -129,7 +129,7 @@ ui <- navbarPage("Scouting App",
                  ),# Close tab panel            
                  
                  
-  ## TAB Similar players #######################################################################
+                 ## TAB Similar players #######################################################################
                  tabPanel("Similar Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -169,62 +169,73 @@ ui <- navbarPage("Scouting App",
                           ) # Close the sidebar layout
                           
                  ),# Close tab panel                     
-
-  ## TAB Leagues #######################################################################
-tabPanel("Leagues", fluid = TRUE,
-         
-         sidebarLayout(
-           
-           sidebarPanel(
-             
-             
-             
-           ), # Close sidebar
-           
-           mainPanel(
-           ) # Close main panel
-           
-         ) # Close the sidebar layout
-         
-),# Close tab panel
-
-  ## TAB Teams #######################################################################
-tabPanel("Teams", fluid = TRUE,
-         
-         sidebarLayout(
-           
-           sidebarPanel(
-             
-             
-             
-           ), # Close sidebar
-           
-           mainPanel(
-           ) # Close main panel
-           
-         ) # Close the sidebar layout
-         
-),# Close tab panel 
-
-  ## TAB Stats Correlation #######################################################################
-tabPanel("Stats Correlation", fluid = TRUE,
-         
-         sidebarLayout(
-           
-           sidebarPanel(
-             
-             
-             
-           ), # Close sidebar
-           
-           mainPanel(
-           ) # Close main panel
-           
-         ) # Close the sidebar layout
-         
-),# Close tab panel     
-
-  ## TAB Database ####################################################################### 
+                 
+                 ## TAB Leagues #######################################################################
+                 tabPanel("Leagues", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              h3('Map of the world'),
+                              
+                              selectInput("leagues_map",
+                                          label = "Select League:", 
+                                          choices = leagues, 
+                                          selected = "English Premier League",
+                                          multiple = F),
+                              
+                              checkboxGroupInput("positions_map", 
+                                                 label = "Positions:", 
+                                                 choices = c("Defender", "Midfielder", "Forward"),
+                                                 inline = TRUE, c("Defender", "Midfielder", "Forward")),
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(plotOutput("map")
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel
+                 
+                 ## TAB Teams #######################################################################
+                 tabPanel("Teams", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel 
+                 
+                 ## TAB Stats Correlation #######################################################################
+                 tabPanel("Stats Correlation", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel     
+                 
+                 ## TAB Database ####################################################################### 
                  
                  tabPanel("Database", fluid = TRUE,
                           
@@ -300,9 +311,9 @@ tabPanel("Stats Correlation", fluid = TRUE,
                               fluidRow(
                                 
                                 column(6, sliderInput("defending_range", 
-                                                       label = "Defending:",
-                                                       min = 1, max = 99, 
-                                                       value = c(1, 99))),
+                                                      label = "Defending:",
+                                                      min = 1, max = 99, 
+                                                      value = c(1, 99))),
                                 column(6, sliderInput("physic_range", 
                                                       label = "Physic:",
                                                       min = 1, max = 99, 
@@ -506,6 +517,28 @@ server <- function(input, output) {
   options = list(pageLength = 5, scrollX = T, lengthMenu = c(5, 10, 20))
   )
   
+  ## Create Map  #######################  
+  output$map <- renderPlot({
+    world_map <- map_data("world")
+    world_map <- world_map %>% mutate(region = as.character(region))
+    data <- data %>% mutate(Nation = if_else(Nation == "England", "UK", 
+                                             if_else(Nation == "United States", "USA", Nation))) %>% 
+      filter(League == input$leagues_map & Global.Position %in% input$positions_map) %>%
+      count(Nation, name = "Number of Players") %>%
+      rename(region = Nation) %>%
+      mutate(region = as.character(region))
+    
+    numofplayers <- world_map %>% left_join(data, by = "region")
+    
+    ggplot(numofplayers, aes(long, lat, group = group))+
+      geom_polygon(aes(fill = `Number of Players` ), color = "white", show.legend = TRUE)+
+      scale_fill_viridis_c(option = "C")+
+      theme_void()+
+      labs(fill = "Number of Players",
+           title = paste("Nations of", 
+                         input$leagues_map, "(", 
+                         paste(input$positions_map, collapse = ', '),")"))
+  }, width = 920, height = 475)
 }
 
 ## APP ##########################################################################
