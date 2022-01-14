@@ -53,7 +53,7 @@ players <- lapply(players,sort,decreasing=FALSE)
 
 ui <- navbarPage("Scouting App",
                  
-## TAB 1 #######################################################################
+  ## TAB 1 #######################################################################
                  tabPanel("Compare Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -99,7 +99,7 @@ ui <- navbarPage("Scouting App",
                  ),# Close tab panel            
                  
                  
-## TAB 2 #######################################################################
+  ## TAB 2 #######################################################################
                  tabPanel("Similar Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -116,10 +116,64 @@ ui <- navbarPage("Scouting App",
                           ) # Close the sidebar layout
                           
                  ),# Close tab panel                     
+
+  ## TAB 3 #######################################################################
+tabPanel("Leagues", fluid = TRUE,
+         
+         sidebarLayout(
+           
+           sidebarPanel(
+             
+             
+             
+           ), # Close sidebar
+           
+           mainPanel(
+           ) # Close main panel
+           
+         ) # Close the sidebar layout
+         
+),# Close tab panel
+
+  ## TAB 4 #######################################################################
+tabPanel("Teams", fluid = TRUE,
+         
+         sidebarLayout(
+           
+           sidebarPanel(
+             
+             
+             
+           ), # Close sidebar
+           
+           mainPanel(
+           ) # Close main panel
+           
+         ) # Close the sidebar layout
+         
+),# Close tab panel 
+
+  ## TAB 5 #######################################################################
+tabPanel("Correlation", fluid = TRUE,
+         
+         sidebarLayout(
+           
+           sidebarPanel(
+             
+             
+             
+           ), # Close sidebar
+           
+           mainPanel(
+           ) # Close main panel
+           
+         ) # Close the sidebar layout
+         
+),# Close tab panel     
+
+  ## TAB 6 ####################################################################### 
                  
-## TAB 3 ####################################################################### 
-                 
-                 tabPanel("Search", fluid = TRUE,
+                 tabPanel("Database", fluid = TRUE,
                           
                           sidebarLayout(
                             
@@ -238,7 +292,7 @@ server <- function(input, output) {
                       between(Physic, input$physic_range[1], input$physic_range[2])
     )
     %>% select(-Foot),
-    options = list(pageLength = 10,
+    options = list(pageLength = 10, scrollX = T,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
 
