@@ -170,8 +170,8 @@ ui <- navbarPage("Scouting App",
                           
                  ),# Close tab panel                     
                  
-                 ## TAB Leagues #######################################################################
-                 tabPanel("Leagues", fluid = TRUE,
+                 ## TAB Nations #######################################################################
+                 tabPanel("Nations", fluid = TRUE,
                           
                           sidebarLayout(
                             
