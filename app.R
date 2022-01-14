@@ -142,6 +142,14 @@ ui <- navbarPage("Scouting App",
                                           label = "Select Position:", 
                                           choices = c("Defender", "Midfielder", "Forward"),
                                           selected="Defender"),
+                              
+                              pickerInput("leagues_cluster",
+                                          label = "Select Leagues:", 
+                                          choices = leagues, 
+                                          selected = unlist(leagues, use.names = FALSE),
+                                          options = list(`actions-box` = TRUE),
+                                          multiple = T),
+                              
                               selectInput("n_clusters",
                                           label = "Number of Clusters:", 
                                           choices = c(2,3,4,5),
@@ -437,7 +445,11 @@ server <- function(input, output) {
   ## Clustering  #######################  
   # Filter the data by Global Position
   dataCluster <- reactive({
-    data_cluster <- data %>% filter(Global.Position == input$position_cluster) 
+    validate(
+      need(!is.null(input$leagues_cluster), "Please select at least one league")
+    )
+    data_cluster <- data %>% filter(Global.Position == input$position_cluster  & 
+                                      League %in% input$leagues_cluster) 
     row.names(data_cluster) <- data_cluster$id
     data_cluster
   })
@@ -484,7 +496,9 @@ server <- function(input, output) {
     data <- dataCluster()
     k <- clusters()
     data$Cluster <- k$cluster
-    data <- data %>% select(Cluster, Name, Club, League, Nation, Position) %>% arrange(Cluster)
+    data <- data %>% select(Cluster, Name, Club, League, Value, Position) %>% arrange(Cluster)
+    data$Value <- round(data$Value/1000000,2)
+    data %>% rename("Value (€M)" = Value)
   },
   options = list(pageLength = 5, scrollX = T, lengthMenu = c(5, 10, 20))
   )

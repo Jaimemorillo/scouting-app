@@ -34,10 +34,11 @@ stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic'
 # Clustering
 data_cluster <- data %>% filter(Global.Position == "Defender") 
 row.names(data_cluster) <- data_cluster$id 
-data_cluster_in <- data_cluster %>% select(stats_names)
+data_cluster_in <- data_cluster %>% select(stats_names) 
+data_cluster_in <- data_cluster_in[1:3,]
 
 set.seed(1)
-k <- kmeans(data_cluster_in, center = 3, nstart = 25)   
+k <- kmeans(data_cluster_in, center = 20, nstart = 25)   
 
 p <- fviz_cluster(k, geom = "point", data = data_cluster_in, ggtheme = theme_minimal())+ggtitle("k = 3")
 p
