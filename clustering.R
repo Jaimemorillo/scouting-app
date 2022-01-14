@@ -36,18 +36,27 @@ stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic'
 # Clustering
 data_cluster <- data %>% filter(Global.Position == "Forward") 
 row.names(data_cluster) <- data_cluster$id 
-data_cluster <- data_cluster %>% select(stats_names)
-data_cluster
+data_cluster_in <- data_cluster %>% select(stats_names)
 
-k2 <- kmeans(data_cluster, center = 2, nstart = 25)   
-k3 <- kmeans(data_cluster, centers = 3, nstart = 25)
-k4 <- kmeans(data_cluster, centers = 4, nstart = 25)
-k5 <- kmeans(data_cluster, centers = 5, nstart = 25)
+set.seed(1)
+k <- kmeans(data_cluster_in, center = 3, nstart = 25)   
 
-p1 <- fviz_cluster(k2, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 2")
-p2 <- fviz_cluster(k3, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 3")
-p3 <- fviz_cluster(k4, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 4")
-p4 <- fviz_cluster(k5, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 5")
+p <- fviz_cluster(k, geom = "point", data = data_cluster_in, ggtheme = theme_minimal())+ggtitle("k = 3")
+p
 
-options(repr.plot.width = 15, repr.plot.height = 8)
-grid.arrange(p1,p2,p3,p4)
+data_cluster$Cluster <- k$cluster
+
+z <- data_cluster %>% group_by(Cluster) %>% summarise("Value (M)" = mean(Value),
+                                                      Salary = mean(Salary),
+                                                      Age = mean(Age),
+                                                      Pace = mean(Pace),
+                                                      Shooting = mean(Shooting),
+                                                      Passing = mean(Passing),
+                                                      Dribbling = mean(Dribbling),
+                                                      Defending = mean(Defending),
+                                                      Physic = mean(Physic))
+z <- round(z,2)
+z$`Value (M)`
+
+z <- round(z,0)
+z <- as.data.frame(sapply(z,as.integer))

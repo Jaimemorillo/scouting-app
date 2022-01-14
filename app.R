@@ -94,17 +94,25 @@ ui <- navbarPage("Scouting App",
                             
                             sidebarPanel(
                               
-                              h3('Clustering by Position'),
+                              h3('Clustering'),
                               
                               selectInput("position_cluster",
                                           label = "Select Position:", 
                                           choices = c("Defender", "Midfielder", "Forward"),
                                           selected="Defender"),
+                              selectInput("n_clusters",
+                                          label = "Number of Clusters:", 
+                                          choices = c(2,3,4,5),
+                                          selected = 3),
                               
                             ), # Close sidebar
                             
                             mainPanel(
-                              plotOutput('cluster_plot')
+                              plotOutput('cluster_plot'),
+                              br(),
+                              br(),
+                              br(),
+                              tableOutput('cluster_summary')
                             ) # Close main panel
                             
                           ) # Close the sidebar layout
@@ -282,7 +290,7 @@ server <- function(input, output) {
                       between(Defending, input$defending_range[1], input$defending_range[2]) &
                       between(Physic, input$physic_range[1], input$physic_range[2])
     )
-    %>% select(-Global.Position),
+    %>% select(-c(Global.Position, id)),
     options = list(pageLength = 10, scrollX = T,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
@@ -337,28 +345,47 @@ server <- function(input, output) {
   # Filter the data
   dataCluster <- reactive({
     data_cluster <- data %>% filter(Global.Position == input$position_cluster) 
-    row.names(data_cluster) <- data_cluster$id 
-    data_cluster <- data_cluster %>% select(stats_names)
+    row.names(data_cluster) <- data_cluster$id
+    data_cluster
   })
   
-  # Create the clusters and the plot
+  # Create the clusters
+  clusters <- reactive({
+    data_cluster <- dataCluster() %>% select(stats_names)
+    set.seed(1)
+    kmeans(data_cluster, centers = as.numeric(input$n_clusters), nstart = 20)   
+  })
+  
+  # Create the plot
   output$cluster_plot <- renderPlot({
-    data_cluster <- dataCluster()
-    k2 <- kmeans(data_cluster, center = 2, nstart = 25)   
-    k3 <- kmeans(data_cluster, centers = 3, nstart = 25)
-    k4 <- kmeans(data_cluster, centers = 4, nstart = 25)
-    k5 <- kmeans(data_cluster, centers = 5, nstart = 25)
-    
-    p1 <- fviz_cluster(k2, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 2")
-    p2 <- fviz_cluster(k3, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 3")
-    p3 <- fviz_cluster(k4, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 4")
-    p4 <- fviz_cluster(k5, geom = "point", data = data_cluster, ggtheme = theme_minimal())+ggtitle("k = 5")
-    
+    data_cluster <- dataCluster() %>% select(stats_names)
+    k <- clusters()
+    p <- fviz_cluster(k, geom = "point", data = data_cluster, 
+                      ggtheme = theme_minimal())+ggtitle(paste0("Kmeans (",input$n_clusters, " clusters)"))
     options(repr.plot.width = 15, repr.plot.height = 8)
-    p = grid.arrange(p1,p2,p3,p4)
-    print(p)
-  })
+    p
+  }, width = 650, height = 450)
   
+  # Data table with clusters summary
+  output$cluster_summary <- renderTable({
+    data <- dataCluster()
+    k <- clusters()
+    data$Cluster <- k$cluster
+    summary <- data %>% group_by(Cluster) %>% summarise("Value (€M)" = mean(Value),
+                                                          "Salary (€k)" = mean(Salary),
+                                                          Age = mean(Age),
+                                                          Pace = mean(Pace),
+                                                          Shooting = mean(Shooting),
+                                                          Passing = mean(Passing),
+                                                          Dribbling = mean(Dribbling),
+                                                          Defending = mean(Defending),
+                                                          Physic = mean(Physic))
+    summary <- round(summary,0)
+    summary <- as.data.frame(sapply(summary,as.integer))
+    summary$`Value (€M)` <- round(summary$Value/1000000,2)
+    summary$`Salary (€k)` <- round(summary$Salary/1000,2)
+    summary
+  })
 }
 
 ## APP ##########################################################################
