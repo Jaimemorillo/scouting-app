@@ -20,7 +20,7 @@ data <- data %>% select(short_name, club_name,
                         search_name)
 # search_name has to be the last one
 
-# Rename columns
+# Rename columns (new name = older name)
 data <- data %>% rename(Name = short_name, Club = club_name, League = league_name, 
                         Nation = nationality_name, Position = player_position, 
                         "Global Position" = global_position,
@@ -31,9 +31,9 @@ data <- data %>% rename(Name = short_name, Club = club_name, League = league_nam
 # These are the last names of the columns
 
 # Create inputs for filters (database) ordering by name
-nations <- as.list(unique(data[c("Nation")]))
+nations <- as.list(unique(data["Nation"]))
 nations <- lapply(nations,sort,decreasing=FALSE)
-leagues <- as.list(unique(data[c("League")]))
+leagues <- as.list(unique(data["League"]))
 leagues <- lapply(leagues,sort,decreasing=FALSE)
 
 # Create radar chart data 
@@ -41,7 +41,7 @@ stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic'
 data_stats <- data %>% select ("Name", "Club", stats_names)
 data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 # Create inputs for filters (radar chart) ordering by name
-players <- as.list(unique(data_stats[c("Name_Club")]))
+players <- as.list(unique(data_stats["Name_Club"]))
 players <- lapply(players,sort,decreasing=FALSE)
 
 ## UI ##########################################################################
