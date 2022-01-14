@@ -7,7 +7,7 @@ library(plotly)
 # GK missing
 data <- read.csv("data/fifa_players.csv", sep="|", encoding = 'UTF-8')
 
-# https://dplyr.tidyverse.org/reference/
+# https://dplyr.tidyverse.org/reference/ (library for select, filter, rename...)
 data <- data %>% select(short_name, club_name,
                         league_name, nationality_name, player_position,
                         age, value_eur, wage_eur, preferred_foot,
@@ -15,26 +15,26 @@ data <- data %>% select(short_name, club_name,
                         search_name)
 # search_name has to be the last one
 
-# Inputs
-nations <- as.list(unique(data[c("nationality_name")]))
-nations <- lapply(nations,sort,decreasing=FALSE)
-leagues <- as.list(unique(data[c("league_name")]))
-leagues <- lapply(leagues,sort,decreasing=FALSE)
-#as.list(unique(data[c("player_position")]))
-#as.list(unique(data[c("preferred_foot")]))
-
 # Rename columns
-data <- data %>% rename(Name = short_name, Club = club_name ,League = league_name, 
+data <- data %>% rename(Name = short_name, Club = club_name, League = league_name, 
                         Nation = nationality_name, Position = player_position,
                         Age = age, Value = value_eur, Salary = wage_eur, Foot = preferred_foot,
                         Pace = pace, Shooting = shooting, 
                         Passing = passing, Dribbling = dribbling, Defending = defending, 
                         Physic = physic)
+# These are the last names of the columns
 
-# Compare radar data
+# Create inputs for filters (database) ordering by name
+nations <- as.list(unique(data[c("Nation")]))
+nations <- lapply(nations,sort,decreasing=FALSE)
+leagues <- as.list(unique(data[c("League")]))
+leagues <- lapply(leagues,sort,decreasing=FALSE)
+
+# Create radar chart data 
 stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic')
 data_stats <- data %>% select ("Name", "Club", stats_names)
 data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
+# Create inputs for filters (radar chart) ordering by name
 players <- as.list(unique(data_stats[c("Name_Club")]))
 players <- lapply(players,sort,decreasing=FALSE)
 
@@ -42,7 +42,7 @@ players <- lapply(players,sort,decreasing=FALSE)
 
 ui <- navbarPage("Scouting App",
                  
-  ## TAB 1 #######################################################################
+  ## TAB Compare players #######################################################################
                  tabPanel("Compare Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -65,16 +65,6 @@ ui <- navbarPage("Scouting App",
                                           choices = players,
                                           selected = "Cristiano Ronaldo - Manchester United"),
                               
-                              selectInput("player_4",
-                                          label = "Player 4:", 
-                                          choices = players,
-                                          selected = "K. Mbappé - Paris Saint-Germain"),
-                              
-                              selectInput("player_5",
-                                          label = "Player 5:", 
-                                          choices = players,
-                                          selected = "V. van Dijk - Liverpool"),
-                              
                               helpText("To visualize the stats of a player
                                        click his name in the legend.")
                               
@@ -88,7 +78,7 @@ ui <- navbarPage("Scouting App",
                  ),# Close tab panel            
                  
                  
-  ## TAB 2 #######################################################################
+  ## TAB Similar players #######################################################################
                  tabPanel("Similar Players", fluid = TRUE,
                           
                           sidebarLayout(
@@ -106,7 +96,7 @@ ui <- navbarPage("Scouting App",
                           
                  ),# Close tab panel                     
 
-  ## TAB 3 #######################################################################
+  ## TAB Leagues #######################################################################
 tabPanel("Leagues", fluid = TRUE,
          
          sidebarLayout(
@@ -124,7 +114,7 @@ tabPanel("Leagues", fluid = TRUE,
          
 ),# Close tab panel
 
-  ## TAB 4 #######################################################################
+  ## TAB Teams #######################################################################
 tabPanel("Teams", fluid = TRUE,
          
          sidebarLayout(
@@ -142,7 +132,7 @@ tabPanel("Teams", fluid = TRUE,
          
 ),# Close tab panel 
 
-  ## TAB 5 #######################################################################
+  ## TAB Stats Correlation #######################################################################
 tabPanel("Stats Correlation", fluid = TRUE,
          
          sidebarLayout(
@@ -160,7 +150,7 @@ tabPanel("Stats Correlation", fluid = TRUE,
          
 ),# Close tab panel     
 
-  ## TAB 6 ####################################################################### 
+  ## TAB Database ####################################################################### 
                  
                  tabPanel("Database", fluid = TRUE,
                           
@@ -236,7 +226,7 @@ tabPanel("Stats Correlation", fluid = TRUE,
                               
                               fluidRow(
                                 
-                                column(6,  sliderInput("defending_range", 
+                                column(6, sliderInput("defending_range", 
                                                        label = "Defending:",
                                                        min = 1, max = 99, 
                                                        value = c(1, 99))),
@@ -259,15 +249,12 @@ tabPanel("Stats Correlation", fluid = TRUE,
                  
 ) # Close navbar
 
+
 ## SERVER #######################################################################
 
 server <- function(input, output) {
-  
-  # observe({
-  #   print(input$positions)
-  # })
 
-  ## TABLE #######################   
+  ## Create database table #######################   
   output$table <- renderDataTable(
     data %>% filter(Nation %in% input$nations &
                       League %in% input$leagues & 
@@ -285,7 +272,7 @@ server <- function(input, output) {
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
 
-  ## RADAR #######################     
+  ## Create radar chart plot #######################     
   output$radar <- renderPlotly({
     
     plot_ly(
@@ -314,24 +301,6 @@ server <- function(input, output) {
                                      %>% select(stats_names))[1,]),
         theta = stats_names,
         name = as.data.frame(data_stats %>% filter(Name_Club == input$player_3))[1,"Name_Club"],
-        showlegend = TRUE,
-        mode = "markers",
-        visible="legendonly"
-      )  %>%
-      add_trace(
-        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_4)
-                                     %>% select(stats_names))[1,]),
-        theta = stats_names,
-        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_4))[1,"Name_Club"],
-        showlegend = TRUE,
-        mode = "markers",
-        visible="legendonly"
-      ) %>%
-      add_trace(
-        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_5)
-                                     %>% select(stats_names))[1,]),
-        theta = stats_names,
-        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_5))[1,"Name_Club"],
         showlegend = TRUE,
         mode = "markers",
         visible="legendonly"
