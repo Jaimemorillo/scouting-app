@@ -42,17 +42,90 @@ data <- data %>% rename(Name = short_name, Club = club_name ,League = league_nam
                         Passing = passing, Dribbling = dribbling, Defending = defending, 
                         Physic = physic)
 
+# Compare radar data
+stats_names <- c('Pace','Shooting','Passing', 'Dribbling', 'Defending', 'Physic')
+data_stats <- data %>% select ("Name", "Club", stats_names)
+data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
+players <- as.list(unique(data_stats[c("Name_Club")]))
+players <- lapply(players,sort,decreasing=FALSE)
+
 ## UI ##########################################################################
 
 ui <- navbarPage("Scouting App",
                  
 ## TAB 1 #######################################################################
-                 
-                 tabPanel("General", fluid = TRUE,
+                 tabPanel("Compare Players", fluid = TRUE,
                           
                           sidebarLayout(
                             
                             sidebarPanel(
+                              h3('Select Players'),
+                              
+                              selectInput("player_1",
+                                          label = "Player 1:", 
+                                          choices = players,
+                                          selected="L. Messi - Paris Saint-Germain"),
+                              
+                              selectInput("player_2",
+                                          label = "Player 2:", 
+                                          choices = players,
+                                          selected = "N. Kanté - Chelsea"),
+                              
+                              selectInput("player_3",
+                                          label = "Player 3:", 
+                                          choices = players,
+                                          selected = "Cristiano Ronaldo - Manchester United"),
+                              
+                              selectInput("player_4",
+                                          label = "Player 4:", 
+                                          choices = players,
+                                          selected = "K. Mbappé - Paris Saint-Germain"),
+                              
+                              selectInput("player_5",
+                                          label = "Player 5:", 
+                                          choices = players,
+                                          selected = "V. van Dijk - Liverpool"),
+                              
+                              helpText("To visualize the stats of a player
+                                       click his name in the legend.")
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(plotlyOutput("radar")
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel            
+                 
+                 
+## TAB 2 #######################################################################
+                 tabPanel("Similar Players", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel                     
+                 
+## TAB 3 ####################################################################### 
+                 
+                 tabPanel("Search", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              h3('Apply Filters'),
+                              
                               pickerInput("nations",
                                           label = "Nations:", 
                                           choices = nations, 
@@ -140,43 +213,6 @@ ui <- navbarPage("Scouting App",
                           
                  ), # Close tab panel
                  
-## TAB 2 #######################################################################
-                 
-                 tabPanel("Compare", fluid = TRUE,
-                          
-                          sidebarLayout(
-                            
-                            sidebarPanel(
-                              
-                              
-                              
-                            ), # Close sidebar
-                            
-                            mainPanel(
-                            ) # Close main panel
-                            
-                          ) # Close the sidebar layout
-                          
-                 ),# Close tab panel
-                 
-## TAB 3 ####################################################################### 
-                 
-                 tabPanel("Similar player", fluid = TRUE,
-                          
-                          sidebarLayout(
-                            
-                            sidebarPanel(
-                              
-                              
-                              
-                            ), # Close sidebar
-                            
-                            mainPanel(
-                            ) # Close main panel
-                            
-                          ) # Close the sidebar layout
-                          
-                 ),# Close tab panel
                  
 ) # Close navbar
 
@@ -187,7 +223,8 @@ server <- function(input, output) {
   # observe({
   #   print(input$positions)
   # })
-  
+
+  ## TABLE #######################   
   output$table <- renderDataTable(
     data %>% filter(Nation %in% input$nations &
                       League %in% input$leagues & 
@@ -204,6 +241,69 @@ server <- function(input, output) {
     options = list(pageLength = 10,
                    columnDefs = list(list(visible=FALSE, targets=c(-1))))
   )
+
+  ## RADAR #######################     
+  output$radar <- renderPlotly({
+    
+    plot_ly(
+      type = 'scatterpolar',
+      mode = "closest",
+      fill = 'toself'
+    )  %>%
+      add_trace(
+        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_1)
+                                     %>% select(stats_names))[1,]),
+        theta = stats_names,
+        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_1))[1,"Name_Club"],
+        mode = "markers"
+      )  %>%
+      add_trace(
+        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_2)
+                                     %>% select(stats_names))[1,]),
+        theta = stats_names,
+        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_2))[1,"Name_Club"],
+        showlegend = TRUE,
+        mode = "markers",
+        visible="legendonly"
+      )  %>%
+      add_trace(
+        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_3)
+                                     %>% select(stats_names))[1,]),
+        theta = stats_names,
+        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_3))[1,"Name_Club"],
+        showlegend = TRUE,
+        mode = "markers",
+        visible="legendonly"
+      )  %>%
+      add_trace(
+        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_4)
+                                     %>% select(stats_names))[1,]),
+        theta = stats_names,
+        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_4))[1,"Name_Club"],
+        showlegend = TRUE,
+        mode = "markers",
+        visible="legendonly"
+      ) %>%
+      add_trace(
+        r = as.numeric(as.data.frame(data_stats %>% filter(Name_Club == input$player_5)
+                                     %>% select(stats_names))[1,]),
+        theta = stats_names,
+        name = as.data.frame(data_stats %>% filter(Name_Club == input$player_5))[1,"Name_Club"],
+        showlegend = TRUE,
+        mode = "markers",
+        visible="legendonly"
+      ) %>% 
+      layout(
+        autosize = T, width = 800, height=700, margin = 30,
+        polar = list(
+          radialaxis = list(
+            visible = T,
+            range = c(0,100)
+          )
+        )
+      )
+    
+  })
   
 }
 
