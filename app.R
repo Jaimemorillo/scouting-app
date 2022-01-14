@@ -4,14 +4,17 @@ library(shinyWidgets)
 library(plotly)
 
 ## DATA #######################################################################
-# Fix gk missing
+# GK missing
 data <- read.csv("data/fifa_players.csv", sep="|", encoding = 'UTF-8')
-# search_name has to be the last one
+
+# https://dplyr.tidyverse.org/reference/
 data <- data %>% select(short_name, club_name,
                         league_name, nationality_name, player_position,
                         age, value_eur, wage_eur, preferred_foot,
                         pace, shooting, passing, dribbling, defending, physic,
                         search_name)
+# search_name has to be the last one
+
 # Inputs
 nations <- as.list(unique(data[c("nationality_name")]))
 nations <- lapply(nations,sort,decreasing=FALSE)
@@ -19,20 +22,6 @@ leagues <- as.list(unique(data[c("league_name")]))
 leagues <- lapply(leagues,sort,decreasing=FALSE)
 #as.list(unique(data[c("player_position")]))
 #as.list(unique(data[c("preferred_foot")]))
-
-# Ranges
-min_pace <- min(data$pace)
-max_pace <- max(data$pace)  
-min_shooting <- min(data$shooting)
-max_shooting <- max(data$shooting)  
-min_passing <- min(data$passing)
-max_passing <- max(data$passing)  
-min_dribbling <- min(data$dribbling)
-max_dribbling <- max(data$dribbling)  
-min_defending <- min(data$defending)
-max_defending <- max(data$defending)  
-min_physic <- min(data$physic)
-max_physic <- max(data$physic)
 
 # Rename columns
 data <- data %>% rename(Name = short_name, Club = club_name ,League = league_name, 
@@ -43,7 +32,7 @@ data <- data %>% rename(Name = short_name, Club = club_name ,League = league_nam
                         Physic = physic)
 
 # Compare radar data
-stats_names <- c('Pace','Shooting','Passing', 'Dribbling', 'Defending', 'Physic')
+stats_names <- c('Pace','Shooting','Dribbling', 'Passing', 'Defending', 'Physic')
 data_stats <- data %>% select ("Name", "Club", stats_names)
 data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 players <- as.list(unique(data_stats[c("Name_Club")]))
@@ -154,7 +143,7 @@ tabPanel("Teams", fluid = TRUE,
 ),# Close tab panel 
 
   ## TAB 5 #######################################################################
-tabPanel("Correlation", fluid = TRUE,
+tabPanel("Stats Correlation", fluid = TRUE,
          
          sidebarLayout(
            
@@ -224,11 +213,11 @@ tabPanel("Correlation", fluid = TRUE,
                                 column(6, sliderInput("pace_range", 
                                                       label = "Pace:",
                                                       min = 1, max = 99, 
-                                                      value = c(min_pace, max_pace))),
+                                                      value = c(1, 99))),
                                 column(6, sliderInput("shooting_range", 
                                                       label = "Shooting:",
                                                       min = 1, max = 99, 
-                                                      value = c(min_shooting, max_shooting)))
+                                                      value = c(1, 99)))
                                 
                               ),
                               
@@ -237,11 +226,11 @@ tabPanel("Correlation", fluid = TRUE,
                                 column(6, sliderInput("passing_range", 
                                                       label = "Passing:",
                                                       min = 1, max = 99, 
-                                                      value = c(min_passing, max_passing))),
+                                                      value = c(1, 99))),
                                 column(6, sliderInput("dribbling_range", 
                                                       label = "Dribbling:",
                                                       min = 1, max = 99, 
-                                                      value = c(min_dribbling, max_dribbling)))
+                                                      value = c(1, 99)))
                                 
                               ),
                               
@@ -250,11 +239,11 @@ tabPanel("Correlation", fluid = TRUE,
                                 column(6,  sliderInput("defending_range", 
                                                        label = "Defending:",
                                                        min = 1, max = 99, 
-                                                       value = c(min_defending, max_defending))),
+                                                       value = c(1, 99))),
                                 column(6, sliderInput("physic_range", 
                                                       label = "Physic:",
                                                       min = 1, max = 99, 
-                                                      value = c(min_physic, max_physic)))
+                                                      value = c(1, 99)))
                                 
                               ),
                               
