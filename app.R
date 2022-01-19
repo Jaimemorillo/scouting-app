@@ -246,7 +246,8 @@ ui <- navbarPage("Scouting App",
                               
                             ), # Close sidebar
                             
-                            mainPanel(plotOutput("map")
+                            mainPanel(plotOutput("map"),
+                                      plotOutput("pie_map"),  
                             ) # Close main panel
                             
                           ) # Close the sidebar layout
@@ -616,7 +617,40 @@ server <- function(input, output) {
            title = paste("Nations of", 
                          input$leagues_map, "(", 
                          paste(input$positions_map, collapse = ', '),")"))
-  }, width = 920, height = 475)
+  }, width = 850, height = 400)
+  
+  output$pie_map <- renderPlot({
+    world_map <- map_data("world")
+    world_map <- world_map %>% mutate(region = as.character(region))
+    data <- data %>% mutate(Nation = if_else(Nation == "England", "UK", 
+                                             if_else(Nation == "United States", "USA", Nation))) %>% 
+      filter(League == input$leagues_map & Global.Position %in% input$positions_map) %>%
+      count(Nation, name = "Number of Players") %>%
+      rename(region = Nation) %>%
+      mutate(region = as.character(region))
+    
+    numofplayers <- world_map %>% left_join(data, by = "region") %>% select(region, "Number of Players")
+    numofplayers <- unique(numofplayers) %>% rename(Number.of.Players = "Number of Players")
+    numofplayers <- na.omit(numofplayers)
+    numofplayers <- numofplayers[order(-numofplayers$Number.of.Players),]
+    numofplayers <- head(numofplayers,8)
+    
+    # Compute the prop
+    numofplayers <- numofplayers %>% 
+      arrange(desc(Number.of.Players)) %>%
+      mutate(prop = Number.of.Players/sum(numofplayers$Number.of.Players) *100)
+    
+    # Basic piechart
+    p<- ggplot(numofplayers, aes(x="", y=prop, fill=reorder(region,prop))) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y") +
+      theme_void() + 
+      geom_text(aes(label = paste0(round(prop), "%")), 
+                position = position_stack(vjust = 0.5)) +
+      scale_fill_brewer(palette="Set1")
+    
+    p + labs(fill = "Top 8 Nations") + ggtitle("Nationality Ratio")
+  }, width = 350, height = 350)
   
   ## Create correlation plot #######################
   output$correlation <- renderPlotly({
