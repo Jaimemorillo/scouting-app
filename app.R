@@ -47,10 +47,6 @@ data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 players <- as.list(unique(data_stats["Name_Club"]))
 players <- lapply(players,sort,decreasing=FALSE)
 
-# Create inputs for filters (correlation chart) ordering by name
-player_position <- as.list(unique(data[c("Position")]))
-player_position <- lapply(player_position,sort,decreasing=FALSE)
-
 # Function for getting the mode
 Mode <- function(x) {
   ux <- unique(x)
@@ -236,7 +232,21 @@ ui <- navbarPage("Scouting App",
                               
                               selectInput("corr_position",
                                           label = "Position:", 
-                                          choices = player_position,
+                                          choices = list("RB" = "RB",
+                                                         "RWB" = "RWB",
+                                                         "LB" = "LB",
+                                                         "LWB" = "LWB",
+                                                         "CB" = "CB", 
+                                                         "CDM" = "CDM",
+                                                         "CM" = "CM",
+                                                         "CAM" = "CAM",
+                                                         "LM" = "LM",
+                                                         "LW" = "LW",
+                                                         "RM" = "RM",
+                                                         "RW" = "RW",
+                                                         "CF" = "CF",
+                                                         "ST" = "ST"
+                                          ),
                                           selected = "CAM"),
                               
                               selectInput("Characteristic_1",
@@ -571,10 +581,12 @@ server <- function(input, output) {
     caracteristic_1 = input$Characteristic_1
     caracteristic_2 = input$Characteristic_2
     
+    data <- (data %>% filter(League == input$corr_league, Position == input$corr_position) %>% 
+               select(Name, Foot, input$Characteristic_1, input$Characteristic_2))
+    
     hypo = cor.test(data[caracteristic_1][, 1], data[caracteristic_2][, 1], method = "spearman")
     
-    ggplot((data %>% filter(League == input$corr_league, Position == input$corr_position) %>% 
-              select(Name, Foot, input$Characteristic_1, input$Characteristic_2)), aes(x=input$Characteristic_1, y=input$Characteristic_2, label = Name, color = Foot)) +
+    ggplot(data, aes(x=input$Characteristic_1, y=input$Characteristic_2, label = Name, color = Foot)) +
       aes_string(x = input$Characteristic_1, y = input$Characteristic_2) +
       geom_point() +
       labs(title = paste("Spearman Correlation Coefficient:", round(hypo$estimate, digits = 2))) +
