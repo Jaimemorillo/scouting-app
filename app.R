@@ -170,91 +170,6 @@ ui <- navbarPage("Scouting App",
                           
                  ),# Close tab panel                     
                  
-                 ## TAB Nations #######################################################################
-                 tabPanel("Nations", fluid = TRUE,
-                          
-                          sidebarLayout(
-                            
-                            sidebarPanel(
-                              
-                              h3('Map of the world'),
-                              
-                              selectInput("leagues_map",
-                                          label = "Select League:", 
-                                          choices = leagues, 
-                                          selected = "English Premier League",
-                                          multiple = F),
-                              
-                              checkboxGroupInput("positions_map", 
-                                                 label = "Positions:", 
-                                                 choices = c("Defender", "Midfielder", "Forward"),
-                                                 inline = TRUE, c("Defender", "Midfielder", "Forward")),
-                              
-                            ), # Close sidebar
-                            
-                            mainPanel(plotOutput("map")
-                            ) # Close main panel
-                            
-                          ) # Close the sidebar layout
-                          
-                 ),# Close tab panel
-                 
-                 ## TAB Offer Indicator #######################################################################
-                 tabPanel("Offer Indicator", fluid = TRUE,
-                          
-                          sidebarLayout(
-                            
-                            sidebarPanel(
-                              h3('Select Value or Salary, and Rating or Age, and and position you are looking for.'),
-                              
-                              
-                              selectInput("offer_position",
-                                          label = "Position:", 
-                                          choices = list("RB" = "RB",
-                                                         "RWB" = "RWB",
-                                                         "LB" = "LB",
-                                                         "LWB" = "LWB",
-                                                         "CB" = "CB", 
-                                                         "CDM" = "CDM",
-                                                         "CM" = "CM",
-                                                         "CAM" = "CAM",
-                                                         "LM" = "LM",
-                                                         "LW" = "LW",
-                                                         "RM" = "RM",
-                                                         "RW" = "RW",
-                                                         "CF" = "CF",
-                                                         "ST" = "ST"
-                                          ),
-                                          selected = NULL
-                              ),
-                              
-                              selectInput("offer_value",
-                                          label = "Value/Salary:",
-                                          choices = list("Salary" = "Salary",
-                                                         "Value"  = "Value"
-                                          ),
-                                          selected = NULL
-                              ),
-                              
-                              selectInput("offer_player",
-                                          label = "Age/Rating:",
-                                          choices = list("Age" = "Age",
-                                                         "Rating"  = "Rating"
-                                          ),
-                                          selected = NULL
-                              )
-                              
-                              
-                              
-                            ), # Close sidebar
-                            
-                            mainPanel(plotlyOutput("offer")
-                            ) # Close main panel
-                            
-                          ) # Close the sidebar layout
-                          
-                 ),# Close tab panel 
-                 
                  ## TAB Stats Correlation #######################################################################
                  tabPanel("Stats Correlation", fluid = TRUE,
                           
@@ -308,6 +223,95 @@ ui <- navbarPage("Scouting App",
                             
                           ) # Close the sidebar layout       
                  ),# Close tab panel     
+                 
+                 ## TAB Nations #######################################################################
+                 tabPanel("Nations", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              
+                              h3('Map of the world'),
+                              
+                              selectInput("leagues_map",
+                                          label = "Select League:", 
+                                          choices = leagues, 
+                                          selected = "English Premier League",
+                                          multiple = F),
+                              
+                              checkboxGroupInput("positions_map", 
+                                                 label = "Positions:", 
+                                                 choices = c("Defender", "Midfielder", "Forward"),
+                                                 inline = TRUE, c("Defender", "Midfielder", "Forward")),
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(plotOutput("map")
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel
+                 
+                 ## TAB Offer Indicator #######################################################################
+                 tabPanel("Offer Indicator", fluid = TRUE,
+                          
+                          sidebarLayout(
+                            
+                            sidebarPanel(
+                              h3('Select Value or Salary, and Rating or Age, and and position you are looking for.'),
+                              
+                              selectInput("offer_league",
+                                          label = "League:", 
+                                          choices = leagues,
+                                          selected="English Premier League"),
+                              
+                              selectInput("offer_position",
+                                          label = "Position:", 
+                                          choices = list("RB" = "RB",
+                                                         "RWB" = "RWB",
+                                                         "LB" = "LB",
+                                                         "LWB" = "LWB",
+                                                         "CB" = "CB", 
+                                                         "CDM" = "CDM",
+                                                         "CM" = "CM",
+                                                         "CAM" = "CAM",
+                                                         "LM" = "LM",
+                                                         "LW" = "LW",
+                                                         "RM" = "RM",
+                                                         "RW" = "RW",
+                                                         "CF" = "CF",
+                                                         "ST" = "ST"
+                                          ),
+                                          selected = "CB"
+                              ),
+                              
+                              selectInput("offer_value",
+                                          label = "Value/Salary:",
+                                          choices = list("Salary" = "Salary",
+                                                         "Value"  = "Value"
+                                          ),
+                                          selected = "Value"
+                              ),
+                              
+                              selectInput("offer_player",
+                                          label = "Age/Rating:",
+                                          choices = list("Age" = "Age",
+                                                         "Rating"  = "Rating"
+                                          ),
+                                          selected = "Age"
+                              )
+                              
+                              
+                              
+                            ), # Close sidebar
+                            
+                            mainPanel(plotlyOutput("offer")
+                            ) # Close main panel
+                            
+                          ) # Close the sidebar layout
+                          
+                 ),# Close tab panel 
                  
                  ## TAB Database ####################################################################### 
                  
@@ -640,7 +644,10 @@ server <- function(input, output) {
     input_value    = input$offer_value
     input_player   = input$offer_player
     
-    data_bar <- (data %>% filter(Position == input$offer_position) %>%
+    data$Value <- round(data$Value/1000000,2)
+    data$Salary <- round(data$Salary/1000,2)
+    
+    data_bar <- (data %>% filter(Position == input$offer_position & League==input$offer_league) %>%
                    select(input$offer_value, input$offer_player))
     
     ggplot(data_bar, aes_string(x=input$offer_player,y=input$offer_value))+
