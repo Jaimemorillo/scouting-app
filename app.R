@@ -262,11 +262,6 @@ ui <- navbarPage("Scouting App",
                             sidebarPanel(
                               h3('Select Value or Salary, and Rating or Age, and and position you are looking for.'),
                               
-                              selectInput("offer_league",
-                                          label = "League:", 
-                                          choices = leagues,
-                                          selected="English Premier League"),
-                              
                               selectInput("offer_position",
                                           label = "Position:", 
                                           choices = list("RB" = "RB",
@@ -288,7 +283,7 @@ ui <- navbarPage("Scouting App",
                               ),
                               
                               selectInput("offer_value",
-                                          label = "Value/Salary:",
+                                          label = "Value(€M)/Salary(€k):",
                                           choices = list("Salary" = "Salary",
                                                          "Value"  = "Value"
                                           ),
@@ -301,7 +296,7 @@ ui <- navbarPage("Scouting App",
                                                          "Rating"  = "Rating"
                                           ),
                                           selected = "Age"
-                              )
+                              ),
                               
                               
                               
@@ -681,11 +676,11 @@ server <- function(input, output) {
     data$Value <- round(data$Value/1000000,2)
     data$Salary <- round(data$Salary/1000,2)
     
-    data_bar <- (data %>% filter(Position == input$offer_position & League==input$offer_league) %>%
+    data_bar <- (data %>% filter(Position == input$offer_position) %>%
                    select(input$offer_value, input$offer_player))
     
     ggplot(data_bar, aes_string(x=input$offer_player,y=input$offer_value))+
-      geom_bar(stat='identity', fill="skyblue", alpha=0.7)+
+      geom_bar(stat='summary', fill="skyblue", alpha=0.7, fun= 'mean')+
       xlab(input_player)+
       ylab(input_value)
   })
