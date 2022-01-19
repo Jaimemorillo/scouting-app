@@ -47,6 +47,10 @@ data_stats$Name_Club <- paste(data_stats$Name, "-", data_stats$Club)
 players <- as.list(unique(data_stats["Name_Club"]))
 players <- lapply(players,sort,decreasing=FALSE)
 
+# Create inputs for filters (correlation chart) ordering by name
+player_position <- as.list(unique(data[c("Position")]))
+player_position <- lapply(player_position,sort,decreasing=FALSE)
+
 # Function for getting the mode
 Mode <- function(x) {
   ux <- unique(x)
@@ -223,16 +227,38 @@ ui <- navbarPage("Scouting App",
                           sidebarLayout(
                             
                             sidebarPanel(
+                              h3('Select a League, Position and Main characteristics'),
+                              
+                              selectInput("corr_league",
+                                          label = "League:", 
+                                          choices = leagues,
+                                          selected="English Premier League"),
+                              
+                              selectInput("corr_position",
+                                          label = "Position:", 
+                                          choices = player_position,
+                                          selected = "CAM"),
+                              
+                              selectInput("Characteristic_1",
+                                          label = "Characteristic 1:", 
+                                          choices = stats_names,
+                                          selected = "Dribbling"),
+                              
+                              selectInput("Characteristic_2",
+                                          label = "Characteristic 2:", 
+                                          choices = stats_names,
+                                          selected = "Shooting"),                                          
+                              
+                              helpText("You can see similar players based on their main attributes.")
                               
                               
                               
                             ), # Close sidebar
                             
-                            mainPanel(
+                            mainPanel(plotlyOutput("correlation")
                             ) # Close main panel
                             
-                          ) # Close the sidebar layout
-                          
+                          ) # Close the sidebar layout       
                  ),# Close tab panel     
                  
                  ## TAB Database ####################################################################### 
@@ -539,6 +565,24 @@ server <- function(input, output) {
                          input$leagues_map, "(", 
                          paste(input$positions_map, collapse = ', '),")"))
   }, width = 920, height = 475)
+  ## Create correlation plot #######################
+  output$correlation <- renderPlotly({
+    
+    caracteristic_1 = input$Characteristic_1
+    caracteristic_2 = input$Characteristic_2
+    
+    hypo = cor.test(data[caracteristic_1][, 1], data[caracteristic_2][, 1], method = "spearman")
+    
+    ggplot((data %>% filter(League == input$corr_league, Position == input$corr_position) %>% 
+              select(Name, Foot, input$Characteristic_1, input$Characteristic_2)), aes(x=input$Characteristic_1, y=input$Characteristic_2, label = Name, color = Foot)) +
+      aes_string(x = input$Characteristic_1, y = input$Characteristic_2) +
+      geom_point() +
+      labs(title = paste("Spearman Correlation Coefficient:", round(hypo$estimate, digits = 2))) +
+      geom_text(check_overlap = T, nudge_x = 0.25, nudge_y = 0.9) +
+      theme(legend.position = "bottom")
+    
+  })
+  
 }
 
 ## APP ##########################################################################
