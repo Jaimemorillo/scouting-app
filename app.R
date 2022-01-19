@@ -18,8 +18,8 @@ data$global_position <- ifelse(data$player_position %in% c("RB","RWB","LB","LWB"
 data <- data %>% select(id, short_name, club_name,
                         league_name, nationality_name, player_position, global_position,
                         age, value_eur, wage_eur, preferred_foot,
-                        pace, shooting, passing, dribbling, defending, physic, player_face_url,
-                        search_name)
+                        pace, shooting, passing, dribbling, defending, physic, overall,
+                        player_face_url, search_name)
 # search_name has to be the last one
 
 # Rename columns (new name = older name)
@@ -29,7 +29,7 @@ data <- data %>% rename(Name = short_name, Club = club_name, League = league_nam
                         Age = age, Value = value_eur, Salary = wage_eur, Foot = preferred_foot,
                         Pace = pace, Shooting = shooting, 
                         Passing = passing, Dribbling = dribbling, Defending = defending, 
-                        Physic = physic)
+                        Physic = physic, Rating = overall)
 # These are the last names of the columns
 
 # Create inputs for filters (database) ordering by name
@@ -199,18 +199,56 @@ ui <- navbarPage("Scouting App",
                           
                  ),# Close tab panel
                  
-                 ## TAB Teams #######################################################################
-                 tabPanel("Teams", fluid = TRUE,
+                 ## TAB Offer Indicator #######################################################################
+                 tabPanel("Offer Indicator", fluid = TRUE,
                           
                           sidebarLayout(
                             
                             sidebarPanel(
+                              h3('Select Value or Salary, and Rating or Age, and and position you are looking for.'),
+                              
+                              
+                              selectInput("offer_position",
+                                          label = "Position:", 
+                                          choices = list("RB" = "RB",
+                                                         "RWB" = "RWB",
+                                                         "LB" = "LB",
+                                                         "LWB" = "LWB",
+                                                         "CB" = "CB", 
+                                                         "CDM" = "CDM",
+                                                         "CM" = "CM",
+                                                         "CAM" = "CAM",
+                                                         "LM" = "LM",
+                                                         "LW" = "LW",
+                                                         "RM" = "RM",
+                                                         "RW" = "RW",
+                                                         "CF" = "CF",
+                                                         "ST" = "ST"
+                                          ),
+                                          selected = NULL
+                              ),
+                              
+                              selectInput("offer_value",
+                                          label = "Value/Salary:",
+                                          choices = list("Salary" = "Salary",
+                                                         "Value"  = "Value"
+                                          ),
+                                          selected = NULL
+                              ),
+                              
+                              selectInput("offer_player",
+                                          label = "Age/Rating:",
+                                          choices = list("Age" = "Age",
+                                                         "Rating"  = "Rating"
+                                          ),
+                                          selected = NULL
+                              )
                               
                               
                               
                             ), # Close sidebar
                             
-                            mainPanel(
+                            mainPanel(plotlyOutput("offer")
                             ) # Close main panel
                             
                           ) # Close the sidebar layout
@@ -575,6 +613,7 @@ server <- function(input, output) {
                          input$leagues_map, "(", 
                          paste(input$positions_map, collapse = ', '),")"))
   }, width = 920, height = 475)
+  
   ## Create correlation plot #######################
   output$correlation <- renderPlotly({
     
@@ -595,6 +634,20 @@ server <- function(input, output) {
     
   })
   
+  ## Create BarChart Offer Indicator  ####################### 
+  output$offer <- renderPlotly({
+    
+    input_value    = input$offer_value
+    input_player   = input$offer_player
+    
+    data_bar <- (data %>% filter(Position == input$offer_position) %>%
+                   select(input$offer_value, input$offer_player))
+    
+    ggplot(data_bar, aes_string(x=input$offer_player,y=input$offer_value))+
+      geom_bar(stat='identity', fill="skyblue", alpha=0.7)+
+      xlab(input_player)+
+      ylab(input_value)
+  })
 }
 
 ## APP ##########################################################################
