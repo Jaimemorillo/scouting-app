@@ -68,7 +68,7 @@ ui <- navbarPage("Scouting App",
                             
                             sidebarPanel(
                               h3('Select Players'),
-                              
+                            
                               selectInput("player_1",
                                           label = "Player 1:", 
                                           choices = players,
@@ -78,6 +78,9 @@ ui <- navbarPage("Scouting App",
                                           label = "Player 2:", 
                                           choices = players,
                                           selected = "N. Kanté - Chelsea"),
+                              
+                              helpText("After clicking on the selector you 
+                                       should write the name of the player."),
                               
                               helpText("To visualize / hide the stats of a player
                                        click his name in the legend.")
@@ -154,6 +157,8 @@ ui <- navbarPage("Scouting App",
                                           label = "Number of Clusters:", 
                                           choices = c(2,3,4,5),
                                           selected = 3),
+                              
+                              helpText("The visualisation helps to choose the appropriate or desired number of clusters.")
                               
                             ), # Close sidebar
                             
@@ -243,6 +248,9 @@ ui <- navbarPage("Scouting App",
                                                  label = "Positions:", 
                                                  choices = c("Defender", "Midfielder", "Forward"),
                                                  inline = TRUE, c("Defender", "Midfielder", "Forward")),
+                              
+                              helpText("The visualisation helps to find the players' countries 
+                                       of origin in each league and the distribution of the most relevant countries (top 8).")
                               
                             ), # Close sidebar
                             
@@ -394,6 +402,8 @@ ui <- navbarPage("Scouting App",
                                                       value = c(1, 99)))
                                 
                               ),
+                              
+                              helpText("You can use the filters and selectors to find the desired players in the dataset.")
                               
                             ), # Close sidebar
                             mainPanel(dataTableOutput('table')
