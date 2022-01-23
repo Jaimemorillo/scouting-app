@@ -4,6 +4,7 @@ library(factoextra)
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
+library(maps)
 
 ## DATA #######################################################################
 # GK missing
